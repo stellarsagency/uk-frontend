@@ -39,7 +39,7 @@ function DealCard({ holiday, index }: { holiday: HolidayPackage; index: number }
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group flex-shrink-0 w-[320px] md:w-[360px]"
+      className="group flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[360px]"
     >
       <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 h-full flex flex-col border border-[#e9e3da]/50">
         {/* Image */}

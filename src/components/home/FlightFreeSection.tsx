@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
@@ -6,12 +6,28 @@ import { formatPrice } from '@/lib/utils';
 import { trendingDestinations } from '@/data/mockData';
 
 export default function FlightFreeSection() {
-  const [current, setCurrent] = useState(0);
-  const itemsPerView = 3;
-  const maxIndex = Math.max(0, trendingDestinations.length - itemsPerView);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(true);
 
-  const prev = () => setCurrent((c) => Math.max(0, c - 1));
-  const next = () => setCurrent((c) => Math.min(maxIndex, c + 1));
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const checkScroll = () => {
+      setShowLeftFade(el.scrollLeft > 10);
+      setShowRightFade(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+    };
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    checkScroll();
+    return () => el.removeEventListener('scroll', checkScroll);
+  }, []);
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const cardWidth = window.innerWidth < 768 ? window.innerWidth * 0.85 : 380;
+      scrollRef.current.scrollBy({ left: dir === 'left' ? -cardWidth : cardWidth, behavior: 'smooth' });
+    }
+  };
 
   return (
     <section className="relative py-16 md:py-24 overflow-hidden" style={{ background: 'linear-gradient(135deg, #002f17 0%, #001a0d 100%)' }}>
@@ -35,17 +51,17 @@ export default function FlightFreeSection() {
             </p>
           </motion.div>
 
-          <div className="flex gap-3 mt-6 md:mt-0">
+          <div className="hidden md:flex gap-3 mt-6 md:mt-0">
             <button
-              onClick={prev}
-              disabled={current === 0}
+              onClick={() => scroll('left')}
+              disabled={showLeftFade === false}
               className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-[#ff467c] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={next}
-              disabled={current >= maxIndex}
+              onClick={() => scroll('right')}
+              disabled={showRightFade === false}
               className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-[#ff467c] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300"
             >
               <ChevronRight className="w-5 h-5" />
@@ -53,11 +69,18 @@ export default function FlightFreeSection() {
           </div>
         </div>
 
-        <div className="overflow-hidden">
-          <motion.div
-            className="flex gap-6"
-            animate={{ x: `-${current * (100 / itemsPerView + 2)}%` }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        <div className="relative">
+          {/* Mobile fade edges */}
+          {showLeftFade && (
+            <div className="md:hidden absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#002f17] to-transparent z-10 pointer-events-none" />
+          )}
+          {showRightFade && (
+            <div className="md:hidden absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#001a0d] to-transparent z-10 pointer-events-none" />
+          )}
+
+          <div
+            ref={scrollRef}
+            className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 snap-x snap-mandatory"
           >
             {trendingDestinations.map((dest, i) => (
               <motion.div
@@ -66,11 +89,11 @@ export default function FlightFreeSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="flex-shrink-0 w-full md:w-[calc(33.333%-16px)]"
+                className="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[calc(33.333%-16px)] snap-start"
               >
                 <Link
                   to={`/search?destination=${encodeURIComponent(dest.name)}`}
-                  className="group block relative aspect-[4/5] rounded-2xl overflow-hidden"
+                  className="group block relative aspect-[4/5] md:aspect-[4/5] rounded-2xl overflow-hidden"
                 >
                   <img
                     src={dest.image}
@@ -79,7 +102,7 @@ export default function FlightFreeSection() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#002f17]/80 via-[#002f17]/20 to-transparent" />
 
-                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
                     <div className="flex items-center gap-1.5 text-white/60 text-sm mb-2">
                       <MapPin className="w-4 h-4" />
                       {dest.country}
@@ -87,7 +110,7 @@ export default function FlightFreeSection() {
                     <h3 className="text-2xl md:text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                       {dest.name}
                     </h3>
-                    <p className="text-white/50 text-sm mb-4 line-clamp-2" style={{ lineHeight: '1.618' }}>
+                    <p className="text-white/50 text-sm mb-4 line-clamp-2 hidden sm:block" style={{ lineHeight: '1.618' }}>
                       {dest.description}
                     </p>
                     <div className="flex items-center justify-between">
@@ -106,19 +129,7 @@ export default function FlightFreeSection() {
                 </Link>
               </motion.div>
             ))}
-          </motion.div>
-        </div>
-
-        <div className="flex justify-center gap-2 mt-10">
-          {Array.from({ length: maxIndex + 1 }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === current ? 'w-8 bg-[#ff467c]' : 'w-2 bg-white/30 hover:bg-white/50'
-              }`}
-            />
-          ))}
+          </div>
         </div>
       </div>
     </section>

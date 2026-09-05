@@ -168,7 +168,8 @@ export default function HeroSearch() {
                   className="bg-white rounded-2xl shadow-2xl shadow-black/15 overflow-hidden"
                 >
                   <div className="p-2.5">
-                    <div className="flex items-stretch gap-2">
+                    {/* Desktop: inline row */}
+                    <div className="hidden md:flex items-stretch gap-2">
                       {/* Destination */}
                       <div className="flex-[2] group">
                         <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white h-full">
@@ -240,6 +241,79 @@ export default function HeroSearch() {
                           Search
                         </button>
                       </div>
+                    </div>
+
+                    {/* Mobile: stacked layout */}
+                    <div className="md:hidden space-y-2">
+                      {/* Destination */}
+                      <div className="group">
+                        <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white">
+                          <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
+                            Destination
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
+                            <input
+                              type="text"
+                              placeholder="Where to?"
+                              value={destination}
+                              onChange={(e) => setDestination(e.target.value)}
+                              className="w-full bg-transparent outline-none text-[#002f17] text-sm placeholder:text-[#818085] font-medium"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* When + Guests row */}
+                      <div className="flex gap-2">
+                        <div className="flex-1 group">
+                          <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white">
+                            <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
+                              When
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
+                              <input
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-[120px] group">
+                          <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white">
+                            <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
+                              Guests
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
+                              <select
+                                value={guests}
+                                onChange={(e) => setGuests(e.target.value)}
+                                className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium appearance-none cursor-pointer"
+                              >
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                                  <option key={n} value={n}>
+                                    {n} {n === 1 ? 'Guest' : 'Guests'}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Search Button */}
+                      <button
+                        type="submit"
+                        className="w-full py-3.5 rounded-xl bg-[#ff467c] text-white font-bold text-sm hover:bg-[#e63d6f] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-[#ff467c]/25"
+                      >
+                        <Search className="w-4 h-4" />
+                        Search Holidays
+                      </button>
                     </div>
                   </div>
                 </form>
