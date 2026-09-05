@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import Layout from '@/components/layout/Layout';
@@ -19,7 +19,7 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<HomePage />} />
@@ -36,7 +36,7 @@ function App() {
               <Route path="/flight-free" element={<FlightFreePage />} />
             </Route>
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </ToastProvider>
     </ThemeProvider>
   );
