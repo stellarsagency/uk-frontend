@@ -1,394 +1,286 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Calendar, Users, Shield, Headphones, Award, ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  ClockIcon, AllInclusiveIcon, WinterSunIcon, AdultsOnlyIcon,
-  DealsIcon, BeachIcon, SchoolHolsIcon, SoloIcon, FamilyIcon,
-  LgbtqIcon, CityBreakIcon, TrendingIcon, RomanticIcon, MountainIcon,
-  GroupIcon, FanFavesIcon, GolfIcon, NightlifeIcon, GymIcon,
-  StudentIcon, ActiveIcon, WellnessIcon, FoodieIcon, GreenFlagsIcon,
-  BoysTripsIcon
-} from './CategoryIcons';
+import { MapPin, Calendar, Users, Plane, ChevronDown } from 'lucide-react';
 
-const searchTabs = ['Packages', 'Accommodation'];
+const slides = [
+  {
+    id: 1,
+    image: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1920&h=625&fit=crop',
+    imageMobile: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=650&h=458&fit=crop',
+    title: 'Up to 100% Off Summer Hits',
+    subtitle: 'Incredible savings on your dream holiday',
+    link: '/search?deals=summer',
+  },
+  {
+    id: 2,
+    image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&h=625&fit=crop',
+    imageMobile: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=650&h=458&fit=crop',
+    title: 'Save £200 Off Long Haul',
+    subtitle: 'Exclusive deals on faraway escapes',
+    link: '/search?deals=long-haul',
+  },
+];
 
-const categories = [
-  { id: 'last-minute', label: 'Last Minute', Icon: ClockIcon, color: '#ff467c' },
-  { id: 'all-inc', label: 'All Inc', Icon: AllInclusiveIcon, color: '#ff467c' },
-  { id: 'winter-sun', label: 'Winter Sun', Icon: WinterSunIcon, color: '#ff8a58' },
-  { id: 'adults-only', label: 'Adults Only', Icon: AdultsOnlyIcon, color: '#9c1981' },
-  { id: 'deals', label: 'Deals', Icon: DealsIcon, color: '#ff467c' },
-  { id: 'beach', label: 'Beach', Icon: BeachIcon, color: '#00acc8' },
-  { id: 'school-hols', label: 'School Hols', Icon: SchoolHolsIcon, color: '#81bc3c' },
-  { id: 'solo', label: 'Solo', Icon: SoloIcon, color: '#550f9d' },
-  { id: 'family', label: 'Family', Icon: FamilyIcon, color: '#42c074' },
-  { id: 'lgbtq', label: 'LGBTQ+', Icon: LgbtqIcon, color: '#9c1981' },
-  { id: 'city-break', label: 'City Break', Icon: CityBreakIcon, color: '#002841' },
-  { id: 'trending', label: 'Trending', Icon: TrendingIcon, color: '#ff467c' },
-  { id: 'romantic', label: 'Romantic', Icon: RomanticIcon, color: '#ff467c' },
-  { id: 'mountains', label: 'Mountains', Icon: MountainIcon, color: '#006bb5' },
-  { id: 'group', label: 'Group', Icon: GroupIcon, color: '#550f9d' },
-  { id: 'fan-faves', label: 'Fan Faves', Icon: FanFavesIcon, color: '#ff467c' },
-  { id: 'golf', label: 'Golf', Icon: GolfIcon, color: '#42c074' },
-  { id: 'nightlife', label: 'Nightlife', Icon: NightlifeIcon, color: '#550f9d' },
-  { id: 'gym', label: 'Gym', Icon: GymIcon, color: '#002841' },
-  { id: 'student', label: 'Student', Icon: StudentIcon, color: '#00acc8' },
-  { id: 'active', label: 'Active', Icon: ActiveIcon, color: '#ff8a58' },
-  { id: 'wellness', label: 'Wellness', Icon: WellnessIcon, color: '#42c074' },
-  { id: 'foodie', label: 'Foodie', Icon: FoodieIcon, color: '#ff8a58' },
-  { id: 'green-flags', label: 'Green Flags', Icon: GreenFlagsIcon, color: '#42c074' },
-  { id: 'boys-trips', label: 'Boys Trips', Icon: BoysTripsIcon, color: '#002841' },
+const airports = [
+  'London Gatwick', 'London Heathrow', 'Manchester', 'Birmingham',
+  'Bristol', 'Edinburgh', 'Glasgow', 'Leeds Bradford', 'Newcastle',
 ];
 
 export default function HeroSearch() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('Packages');
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState('');
+  const [duration, setDuration] = useState('7');
+  const [airport, setAirport] = useState('');
   const [guests, setGuests] = useState('2');
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftFade, setShowLeftFade] = useState(false);
-  const [showRightFade, setShowRightFade] = useState(true);
+  const [activeTab, setActiveTab] = useState<'holidays' | 'hotels'>('holidays');
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const checkScroll = () => {
-      setShowLeftFade(el.scrollLeft > 10);
-      setShowRightFade(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
-    };
-    el.addEventListener('scroll', checkScroll, { passive: true });
-    checkScroll();
-    return () => el.removeEventListener('scroll', checkScroll);
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
   }, []);
 
-  const scrollCategories = (dir: 'left' | 'right') => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' });
-    }
-  };
+  useEffect(() => {
+    const timer = setInterval(nextSlide, 5000);
+    return () => clearInterval(timer);
+  }, [nextSlide]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (destination) params.set('destination', destination);
     if (date) params.set('date', date);
+    if (duration) params.set('duration', duration);
+    if (airport) params.set('airport', airport);
     if (guests) params.set('guests', guests);
-    navigate(`/search?${params.toString()}`);
+    params.set('type', activeTab);
+    navigate({ pathname: '/search', search: params.toString() });
   };
 
   return (
-    <section className="relative">
-      {/* Hero */}
-      <div className="relative min-h-[75vh] md:min-h-[80vh] flex flex-col">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&h=1080&fit=crop"
-            alt="Tropical beach paradise"
-            className="w-full h-full object-cover"
+    <section className="relative h-[545px] md:h-[602px] bg-white">
+      {/* Carousel */}
+      {slides.map((slide, i) => (
+        <div
+          key={slide.id}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            i === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <a href={slide.link} className="block w-full h-full">
+            <picture>
+              <source media="(min-width: 650px)" srcSet={slide.image} />
+              <img
+                src={slide.imageMobile}
+                alt={slide.title}
+                className="w-full h-full object-cover"
+              />
+            </picture>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute bottom-20 md:bottom-28 left-6 md:left-10 max-w-md">
+              <h2
+                className="text-3xl md:text-5xl font-black text-white mb-2 drop-shadow-lg"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                {slide.title}
+              </h2>
+              <p className="text-white/80 text-sm md:text-base">{slide.subtitle}</p>
+            </div>
+          </a>
+        </div>
+      ))}
+
+      {/* Slide Indicators */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentSlide(i)}
+            className={`h-2 rounded-full transition-all ${
+              i === currentSlide ? 'w-8 bg-[#ff467c]' : 'w-2 bg-white/60'
+            }`}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
-        </div>
-
-        <div className="relative flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-12">
-          <div className="max-w-5xl mx-auto w-full text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="mb-4"
-            >
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-semibold tracking-wider uppercase">
-                <Award className="w-3.5 h-3.5 text-[#ffd4e4]" />
-                Award-Winning Holiday Experiences
-              </span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.05] mb-4"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
-              Pick your next trip
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-white/70 text-base md:text-lg max-w-xl mx-auto mb-8"
-              style={{ lineHeight: '1.618' }}
-            >
-              Handpicked holidays to the world's most stunning destinations.
-              Your dream getaway awaits.
-            </motion.p>
-
-            {/* Premium Search Form */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.35 }}
-            >
-              <div className="max-w-[820px] mx-auto">
-                {/* Tabs */}
-                <div className="flex justify-center mb-4">
-                  <div className="inline-flex bg-white/10 backdrop-blur-md rounded-full p-1 border border-white/15">
-                    {searchTabs.map((tab) => (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setActiveTab(tab)}
-                        className={cn(
-                          'relative px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-300',
-                          activeTab === tab
-                            ? 'text-white'
-                            : 'text-white/60 hover:text-white/80'
-                        )}
-                      >
-                        {activeTab === tab && (
-                          <motion.div
-                            layoutId="activeTabBg"
-                            className="absolute inset-0 bg-[#ff467c] rounded-full"
-                            transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-                          />
-                        )}
-                        <span className="relative z-10">{tab}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Search Card */}
-                <form
-                  onSubmit={handleSearch}
-                  className="bg-white rounded-2xl shadow-2xl shadow-black/15 overflow-hidden"
-                >
-                  <div className="p-2.5">
-                    {/* Desktop: inline row */}
-                    <div className="hidden md:flex items-stretch gap-2">
-                      {/* Destination */}
-                      <div className="flex-[2] group">
-                        <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white h-full">
-                          <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
-                            Destination
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
-                            <input
-                              type="text"
-                              placeholder="Where to?"
-                              value={destination}
-                              onChange={(e) => setDestination(e.target.value)}
-                              className="w-full bg-transparent outline-none text-[#002f17] text-sm placeholder:text-[#818085] font-medium"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* When */}
-                      <div className="flex-[1.2] group">
-                        <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white h-full">
-                          <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
-                            When
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
-                            <input
-                              type="date"
-                              value={date}
-                              onChange={(e) => setDate(e.target.value)}
-                              className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Guests */}
-                      <div className="flex-1 group">
-                        <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white h-full">
-                          <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
-                            Guests
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
-                            <select
-                              value={guests}
-                              onChange={(e) => setGuests(e.target.value)}
-                              className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium appearance-none cursor-pointer"
-                            >
-                              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                                <option key={n} value={n}>
-                                  {n} {n === 1 ? 'Guest' : 'Guests'}
-                                </option>
-                              ))}
-                            </select>
-                            <ChevronDown className="w-4 h-4 text-[#002f17]/25 shrink-0" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Search Button */}
-                      <div className="flex-shrink-0">
-                        <button
-                          type="submit"
-                          className="h-full px-8 rounded-xl bg-[#ff467c] text-white font-bold text-sm hover:bg-[#e63d6f] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-[#ff467c]/25 hover:shadow-xl hover:shadow-[#ff467c]/35 min-w-[140px]"
-                        >
-                          <Search className="w-4 h-4" />
-                          Search
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Mobile: stacked layout */}
-                    <div className="md:hidden space-y-2">
-                      {/* Destination */}
-                      <div className="group">
-                        <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white">
-                          <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
-                            Destination
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
-                            <input
-                              type="text"
-                              placeholder="Where to?"
-                              value={destination}
-                              onChange={(e) => setDestination(e.target.value)}
-                              className="w-full bg-transparent outline-none text-[#002f17] text-sm placeholder:text-[#818085] font-medium"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* When + Guests row */}
-                      <div className="flex gap-2">
-                        <div className="flex-1 group">
-                          <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white">
-                            <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
-                              When
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
-                              <input
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="w-[120px] group">
-                          <div className="bg-[#faf5ed] hover:bg-[#f5efe5] rounded-xl px-4 py-3 transition-all duration-300 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white">
-                            <label className="block text-[10px] font-bold text-[#002f17]/35 uppercase tracking-[0.15em] mb-1">
-                              Guests
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-[#002f17]/25 group-focus-within:text-[#ff467c] transition-colors shrink-0" />
-                              <select
-                                value={guests}
-                                onChange={(e) => setGuests(e.target.value)}
-                                className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium appearance-none cursor-pointer"
-                              >
-                                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                                  <option key={n} value={n}>
-                                    {n} {n === 1 ? 'Guest' : 'Guests'}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Search Button */}
-                      <button
-                        type="submit"
-                        className="w-full py-3.5 rounded-xl bg-[#ff467c] text-white font-bold text-sm hover:bg-[#e63d6f] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-[#ff467c]/25"
-                      >
-                        <Search className="w-4 h-4" />
-                        Search Holidays
-                      </button>
-                    </div>
-                  </div>
-                </form>
-
-                {/* Trust Badges */}
-                <div className="flex flex-wrap items-center justify-center gap-4 mt-5 text-white/40 text-[11px] font-medium tracking-wide">
-                  <span className="flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-[#42c074]" />
-                    ATOL Protected
-                  </span>
-                  <span className="w-[3px] h-[3px] rounded-full bg-white/15" />
-                  <span className="flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-[#ff467c]" />
-                    ABTA Member
-                  </span>
-                  <span className="w-[3px] h-[3px] rounded-full bg-white/15" />
-                  <span className="flex items-center gap-1.5">
-                    <Headphones className="w-3.5 h-3.5 text-white/50" />
-                    24/7 Support
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Category Pills — Exact FirstChoice Style */}
-      <div className="relative bg-white border-t border-[#e9e3da]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="relative">
-            {/* Left fade */}
-            {showLeftFade && (
-              <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none flex items-center">
+      {/* Search Form */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <div className="max-w-[992px] mx-auto px-4 pb-4">
+          {/* Tabs */}
+          <div className="flex gap-1 mb-2">
+            <button
+              onClick={() => setActiveTab('holidays')}
+              className={`px-5 py-2.5 rounded-t-lg text-[12px] font-bold tracking-[0.1em] transition-all ${
+                activeTab === 'holidays'
+                  ? 'bg-white text-[#002f17]'
+                  : 'bg-white/70 text-[#002f17]/60 hover:bg-white/90'
+              }`}
+            >
+              <Plane className="w-4 h-4 inline mr-2" />
+              HOLIDAYS
+            </button>
+            <button
+              onClick={() => setActiveTab('hotels')}
+              className={`px-5 py-2.5 rounded-t-lg text-[12px] font-bold tracking-[0.1em] transition-all ${
+                activeTab === 'hotels'
+                  ? 'bg-white text-[#002f17]'
+                  : 'bg-white/70 text-[#002f17]/60 hover:bg-white/90'
+              }`}
+            >
+              <MapPin className="w-4 h-4 inline mr-2" />
+              HOTELS
+            </button>
+          </div>
+
+          {/* Search Card */}
+          <form onSubmit={handleSearch} className="bg-white rounded-b-xl rounded-tr-xl shadow-2xl shadow-black/15 p-2.5">
+            <div className="hidden md:flex items-stretch gap-2">
+              {/* Destination */}
+              <div className="flex-[2]">
+                <div className="bg-[#faf5ed] rounded-xl px-4 py-3 h-full border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                  <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">Destination</label>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#002f17]/30 shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="Where to?"
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      className="w-full bg-transparent outline-none text-[#002f17] text-sm placeholder:text-[#818085] font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* When */}
+              <div className="flex-[1.2]">
+                <div className="bg-[#faf5ed] rounded-xl px-4 py-3 h-full border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                  <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">When</label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#002f17]/30 shrink-0" />
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Duration */}
+              <div className="w-[100px]">
+                <div className="bg-[#faf5ed] rounded-xl px-4 py-3 h-full border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                  <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">Nights</label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium appearance-none cursor-pointer"
+                  >
+                    {[3, 5, 7, 10, 14, 21].map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Airport */}
+              <div className="flex-[1.2]">
+                <div className="bg-[#faf5ed] rounded-xl px-4 py-3 h-full border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                  <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">From</label>
+                  <div className="flex items-center gap-2">
+                    <Plane className="w-4 h-4 text-[#002f17]/30 shrink-0" />
+                    <select
+                      value={airport}
+                      onChange={(e) => setAirport(e.target.value)}
+                      className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium appearance-none cursor-pointer"
+                    >
+                      <option value="">Any airport</option>
+                      {airports.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-[#002f17]/30 shrink-0" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Guests */}
+              <div className="flex-1">
+                <div className="bg-[#faf5ed] rounded-xl px-4 py-3 h-full border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                  <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">Guests</label>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#002f17]/30 shrink-0" />
+                    <select
+                      value={guests}
+                      onChange={(e) => setGuests(e.target.value)}
+                      className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium appearance-none cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search Button */}
+              <div className="flex-shrink-0">
                 <button
-                  onClick={() => scrollCategories('left')}
-                  className="w-8 h-8 rounded-full bg-white border border-[#e9e3da] shadow-sm flex items-center justify-center -ml-2 hover:border-[#ff467c] hover:text-[#ff467c] transition-colors"
+                  type="submit"
+                  className="h-full px-8 rounded-xl bg-[#ff467c] text-white font-bold text-sm hover:bg-[#e63d6f] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#ff467c]/25"
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2.5L4 6L7.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Search
                 </button>
               </div>
-            )}
-
-            {/* Scrollable pills */}
-            <div
-              ref={scrollRef}
-              className="flex gap-2.5 overflow-x-auto scrollbar-hide py-1"
-            >
-              {categories.map((cat, i) => (
-                <motion.a
-                  key={cat.id}
-                  href={`/search?category=${cat.id}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.02 * i }}
-                  className="group flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white border border-[#e9e3da] text-[#002f17] hover:border-[#ff467c]/40 hover:bg-[#ff467c]/5 hover:text-[#ff467c] font-medium text-[13px] whitespace-nowrap transition-all duration-200 cursor-pointer"
-                >
-                  <cat.Icon size={18} color={cat.color} className="shrink-0 transition-transform duration-200 group-hover:scale-110" />
-                  <span>{cat.label}</span>
-                </motion.a>
-              ))}
             </div>
 
-            {/* Right fade */}
-            {showRightFade && (
-              <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none flex items-center justify-end">
-                <button
-                  onClick={() => scrollCategories('right')}
-                  className="w-8 h-8 rounded-full bg-white border border-[#e9e3da] shadow-sm flex items-center justify-center -mr-2 hover:border-[#ff467c] hover:text-[#ff467c] transition-colors"
-                >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
+            {/* Mobile Search */}
+            <div className="md:hidden space-y-2">
+              <div className="bg-[#faf5ed] rounded-xl px-4 py-3 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">Destination</label>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#002f17]/30 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Where to?"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    className="w-full bg-transparent outline-none text-[#002f17] text-sm placeholder:text-[#818085] font-medium"
+                  />
+                </div>
               </div>
-            )}
-          </div>
+              <div className="flex gap-2">
+                <div className="flex-1 bg-[#faf5ed] rounded-xl px-4 py-3 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                  <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">When</label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium"
+                  />
+                </div>
+                <div className="w-[100px] bg-[#faf5ed] rounded-xl px-4 py-3 border-2 border-transparent focus-within:border-[#ff467c] focus-within:bg-white transition-all">
+                  <label className="block text-[10px] font-bold text-[#002f17]/40 uppercase tracking-[0.15em] mb-1">Guests</label>
+                  <select
+                    value={guests}
+                    onChange={(e) => setGuests(e.target.value)}
+                    className="w-full bg-transparent outline-none text-[#002f17] text-sm font-medium appearance-none cursor-pointer"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl bg-[#ff467c] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#ff467c]/25"
+              >
+                Search Holidays
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </section>

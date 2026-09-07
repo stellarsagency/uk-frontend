@@ -1,204 +1,131 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Heart, Star, Clock, Plane, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn, formatPrice } from '@/lib/utils';
-import { featuredHolidays } from '@/data/mockData';
-import { useWishlist } from '@/hooks/useWishlist';
-import type { HolidayPackage } from '@/types';
+import { ChevronLeft, ChevronRight, MapPin, Plane, Star, Clock } from 'lucide-react';
+import { formatPrice } from '@/lib/utils';
 
-function ArrowButton({ label, href, white }: { label: string; href: string; white?: boolean }) {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        'group/btn inline-flex items-center gap-3 font-bold text-sm transition-all duration-300',
-        white
-          ? 'text-white hover:text-[#ffd4e4]'
-          : 'text-[#ff467c] hover:text-[#e63d6f]'
-      )}
-    >
-      <span>{label}</span>
-      <span className="relative flex items-center justify-center w-0 group-hover/btn:w-6 transition-all duration-300 overflow-hidden">
-        <span className="absolute right-0 w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[6px] border-l-current opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
-      </span>
-    </Link>
-  );
-}
-
-function DealCard({ holiday, index }: { holiday: HolidayPackage; index: number }) {
-  const { toggleWishlist, isInWishlist } = useWishlist();
-  const liked = isInWishlist(holiday.id);
-  const discount = holiday.originalPrice
-    ? Math.round(((holiday.originalPrice - holiday.price) / holiday.originalPrice) * 100)
-    : 0;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[360px]"
-    >
-      <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 h-full flex flex-col border border-[#e9e3da]/50">
-        {/* Image */}
-        <div className="relative aspect-[4/3] overflow-hidden">
-          <img
-            src={holiday.image}
-            alt={holiday.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-          {/* Badges */}
-          <div className="absolute top-4 left-4 flex items-center gap-2">
-            {discount > 0 && (
-              <span className="px-3 py-1.5 rounded-full bg-[#ff467c] text-white text-xs font-bold shadow-lg shadow-[#ff467c]/30">
-                {discount}% OFF
-              </span>
-            )}
-            <span className="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-xs font-bold text-[#002f17]">
-              {holiday.boardType}
-            </span>
-          </div>
-
-          {/* Wishlist */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              toggleWishlist(holiday);
-            }}
-            className={cn(
-              'absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110',
-              liked
-                ? 'bg-[#ff467c] text-white shadow-lg shadow-[#ff467c]/30'
-                : 'bg-white/90 backdrop-blur-sm text-[#002f17]/60 hover:text-[#ff467c]'
-            )}
-          >
-            <Heart className={cn('w-5 h-5', liked && 'fill-current')} />
-          </button>
-
-          {/* Bottom badges */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm">
-              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              <span className="text-xs font-bold text-[#002f17]">{holiday.rating}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-5 flex flex-col flex-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#ff467c] mb-1">
-            {holiday.destination}, {holiday.country}
-          </p>
-          <h3 className="text-lg font-semibold text-[#002f17] mb-2 leading-snug" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-            {holiday.name}
-          </h3>
-
-          <div className="flex items-center gap-1 mb-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={cn(
-                  'w-4 h-4',
-                  i < holiday.starRating
-                    ? 'text-amber-400 fill-amber-400'
-                    : 'text-[#e9e3da] fill-[#e9e3da]'
-                )}
-              />
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4 text-xs text-[#002f17]/50 mb-4" style={{ lineHeight: '1.618' }}>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              {holiday.duration} nights
-            </span>
-            <span className="flex items-center gap-1">
-              <Plane className="w-3.5 h-3.5" />
-              {holiday.flightDetails?.departure.airport || 'UK'}
-            </span>
-          </div>
-
-          <div className="mt-auto">
-            <div className="flex items-baseline gap-2 mb-3">
-              {holiday.originalPrice && (
-                <span className="text-sm text-[#002f17]/30 line-through">
-                  {formatPrice(holiday.originalPrice)}
-                </span>
-              )}
-              <span className="text-2xl font-bold text-[#002f17]">
-                {formatPrice(holiday.price)}
-              </span>
-              <span className="text-sm text-[#002f17]/50">pp</span>
-            </div>
-
-            <ArrowButton label="View Deal" href={`/holiday/${holiday.id}`} />
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+const deals = [
+  { id: 1, hotel: 'Hotel Frixos', location: 'Malia, Crete', airport: 'Birmingham', nights: 2, board: 'Self Catering', price: 192, pp: 96, rating: 4.2, image: 'https://images.unsplash.com/photo-1578469550956-0e16b69c6a3d?w=400&h=300&fit=crop', lowAvailability: true },
+  { id: 2, hotel: 'Club Evin', location: 'Marmaris, Turkey', airport: 'Manchester', nights: 2, board: 'Self Catering', price: 194, pp: 97, rating: 4.0, image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=400&h=300&fit=crop', lowAvailability: true },
+  { id: 3, hotel: 'Club Candan', location: 'Marmaris, Turkey', airport: 'Manchester', nights: 2, board: 'Self Catering', price: 212, pp: 106, rating: 4.1, image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=400&h=300&fit=crop' },
+  { id: 4, hotel: 'Planet Studios', location: 'Tsilivi, Zante', airport: 'Bristol', nights: 2, board: 'Self Catering', price: 218, pp: 109, rating: 4.3, image: 'https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?w=400&h=300&fit=crop', lowAvailability: true },
+  { id: 5, hotel: 'Pericles Hotel', location: 'Sami, Kefalonia', airport: 'London Gatwick', nights: 3, board: 'B&B', price: 218, pp: 109, rating: 4.5, image: 'https://images.unsplash.com/photo-1583946099379-f9c4d0a43d8e?w=400&h=300&fit=crop' },
+  { id: 6, hotel: 'Zante Dreams', location: 'Laganas, Zante', airport: 'Birmingham', nights: 3, board: 'Room Only', price: 218, pp: 109, rating: 3.9, image: 'https://images.unsplash.com/photo-1504512485720-7d83a16ee930?w=400&h=300&fit=crop' },
+  { id: 7, hotel: 'Lygies Studios', location: 'Trapezaki, Kefalonia', airport: 'London Gatwick', nights: 2, board: 'Self Catering', price: 220, pp: 110, rating: 4.4, image: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=400&h=300&fit=crop' },
+  { id: 8, hotel: 'Angela Hotel', location: 'Laganas, Zante', airport: 'Glasgow', nights: 4, board: 'Room Only', price: 248, pp: 124, rating: 4.0, image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=300&fit=crop' },
+  { id: 9, hotel: 'Sunny Day Club', location: 'Sunny Beach, Bulgaria', airport: 'Birmingham', nights: 3, board: 'B&B', price: 276, pp: 138, rating: 4.1, image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&fit=crop', lowAvailability: true },
+  { id: 10, hotel: 'Protur Floriana', location: 'Cala Bona, Majorca', airport: 'Bristol', nights: 2, board: 'Self Catering', price: 300, pp: 150, rating: 4.6, image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop' },
+];
 
 export default function FeaturedDeals() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(true);
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = 390;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      setShowLeft(el.scrollLeft > 10);
+      setShowRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+    };
+    el.addEventListener('scroll', check, { passive: true });
+    check();
+    return () => el.removeEventListener('scroll', check);
+  }, []);
+
+  const scroll = (dir: 'left' | 'right') => {
+    scrollRef.current?.scrollBy({ left: dir === 'left' ? -380 : 380, behavior: 'smooth' });
   };
 
   return (
-    <section className="bg-[#faf5ed] py-16 md:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-14"
-        >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#002f17] mb-4" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-            Our Handpicked Selection
+    <section className="bg-white py-10 border-t border-[#e9e3da]">
+      <div className="max-w-[992px] mx-auto px-4">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl md:text-2xl font-black text-[#002f17]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+            Last-Minute Steals
           </h2>
-          <div className="w-20 h-1 bg-[#ff467c] rounded-full mx-auto mb-5" />
-          <p className="text-[#002f17]/60 text-lg max-w-xl mx-auto" style={{ lineHeight: '1.618' }}>
-            Exclusive deals curated by our travel experts
-          </p>
-        </motion.div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!showLeft}
+              className="w-8 h-8 rounded-full border border-[#e9e3da] flex items-center justify-center hover:bg-[#ffd4e4]/40 disabled:opacity-30 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!showRight}
+              className="w-8 h-8 rounded-full border border-[#e9e3da] flex items-center justify-center hover:bg-[#ffd4e4]/40 disabled:opacity-30 transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
         <div className="relative">
-          <button
-            onClick={() => scroll('left')}
-            className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-xl shadow-[#002f17]/10 items-center justify-center text-[#002f17]/60 hover:text-[#ff467c] hover:scale-110 transition-all duration-300 border border-[#e9e3da]"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 snap-x snap-mandatory"
+            className="flex gap-7 overflow-x-auto scrollbar-hide pb-4"
           >
-            {featuredHolidays.map((holiday, i) => (
-              <div key={holiday.id} className="snap-start">
-                <DealCard holiday={holiday} index={i} />
-              </div>
+            {deals.map((deal) => (
+              <Link
+                key={deal.id}
+                to={`/search?hotel=${deal.hotel}`}
+                className="flex-shrink-0 w-[300px] md:w-[340px] group"
+              >
+                <div className="relative rounded-xl overflow-hidden mb-3">
+                  <img
+                    src={deal.image}
+                    alt={deal.hotel}
+                    className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  {deal.lowAvailability && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#ff467c] text-white text-[10px] font-bold px-2 py-1 rounded">
+                      <Clock className="w-3 h-3" />
+                      Low availability
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-[14px] font-bold text-[#002f17] mb-1 group-hover:text-[#ff467c] transition-colors">
+                    {deal.hotel}
+                  </h3>
+                  <div className="flex items-center gap-1 text-[12px] text-[#002f17]/60 mb-2">
+                    <MapPin className="w-3 h-3" />
+                    {deal.location}
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-[#002f17]/50 mb-3">
+                    <span className="flex items-center gap-1">
+                      <Plane className="w-3 h-3" />
+                      {deal.airport}
+                    </span>
+                    <span>{deal.nights} nights</span>
+                    <span>{deal.board}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[12px] text-[#002f17]/50">From </span>
+                      <span className="text-[18px] font-black text-[#002f17]">{formatPrice(deal.pp)}</span>
+                      <span className="text-[12px] text-[#002f17]/50"> pp</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3 h-3 text-[#ff467c] fill-[#ff467c]" />
+                      <span className="text-[12px] font-bold text-[#002f17]">{deal.rating}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
+        </div>
 
-          <button
-            onClick={() => scroll('right')}
-            className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-xl shadow-[#002f17]/10 items-center justify-center text-[#002f17]/60 hover:text-[#ff467c] hover:scale-110 transition-all duration-300 border border-[#e9e3da]"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
+        <div className="mt-8 text-center border-t border-[#e9e3da] pt-6">
+          <a href="/#/search?deals=last-minute" className="btn-cta inline-flex">
+            <span className="label">Last-Min Steals</span>
+            <span className="arrow" />
+          </a>
         </div>
       </div>
     </section>

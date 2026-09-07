@@ -1,30 +1,25 @@
-import { motion } from 'framer-motion';
 import HeroSearch from '@/components/home/HeroSearch';
-import TrustBadges from '@/components/home/TrustBadges';
+import CategoryIcons from '@/components/home/CategoryIcons';
+import OurPicks from '@/components/home/OurPicks';
 import FeaturedDeals from '@/components/home/FeaturedDeals';
-import PopularDestinations from '@/components/home/PopularDestinations';
-import WhyChooseUs from '@/components/home/WhyChooseUs';
-import FlightFreeSection from '@/components/home/FlightFreeSection';
-import NewsletterSignup from '@/components/home/NewsletterSignup';
+import TrendingDestinations from '@/components/home/TrendingDestinations';
+import USPBanner from '@/components/home/USPBanner';
 import TrustpilotReviews from '@/components/home/TrustpilotReviews';
 import InsidersSection from '@/components/home/InsidersSection';
+import PromoBanner from '@/components/home/PromoBanner';
 
 export default function HomePage() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    >
+    <>
       <HeroSearch />
-      <TrustBadges />
+      <CategoryIcons />
+      <OurPicks />
       <FeaturedDeals />
-      <PopularDestinations />
-      <WhyChooseUs />
-      <FlightFreeSection />
+      <TrendingDestinations />
+      <USPBanner />
       <TrustpilotReviews />
       <InsidersSection />
-      <NewsletterSignup />
-    </motion.div>
+      <PromoBanner />
+    </>
   );
 }
